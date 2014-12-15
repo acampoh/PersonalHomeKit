@@ -801,6 +801,7 @@ PHKNetworkMessageData & PHKNetworkMessageData::operator=(const PHKNetworkMessage
 
 PHKNetworkMessageData::PHKNetworkMessageData(const char *rawData, unsigned short len) {
     unsigned short delta = 0;
+    count = 0;
     while (delta < len) {
         int index = recordIndex(rawData[delta+0]);
         if (index < 0) {

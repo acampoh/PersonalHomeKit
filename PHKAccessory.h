@@ -236,9 +236,9 @@ public:
 
 class Accessory {
 public:
-    int numberOfInstance = 0;
+    int numberOfInstance ;
     const int aid;
-    Accessory(int _aid): aid(_aid) {}
+    Accessory(int _aid): aid(_aid) {numberOfInstance=0;}
     virtual short numberOfService() { return 0; }
     virtual Service *serviceAtIndex(int index) {
         return 0;

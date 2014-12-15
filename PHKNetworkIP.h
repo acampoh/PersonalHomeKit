@@ -35,19 +35,25 @@ public:
 
 class PHKNetworkMessageDataRecord {
 public:
-    unsigned char index = 0;
-    char *data = 0;
-    unsigned int length = 0;
-    bool activate = false;
+    unsigned char index ;
+    char *data ;
+    unsigned int length ;
+    bool activate ;
+    PHKNetworkMessageDataRecord(){
+			index = 0;
+			data = 0;
+			length =0;
+			activate = false;
+	}
     ~PHKNetworkMessageDataRecord();
     PHKNetworkMessageDataRecord &operator=(const PHKNetworkMessageDataRecord&);
 };
 
 class PHKNetworkMessageData {
     PHKNetworkMessageDataRecord records[10];
-    unsigned char count = 0;
+    unsigned char count ;
 public:
-    PHKNetworkMessageData() {}
+    PHKNetworkMessageData() {count = 0;}
     PHKNetworkMessageData(const char *rawData, unsigned short len);
     PHKNetworkMessageData(const PHKNetworkMessageData &data);
     PHKNetworkMessageData &operator=(const PHKNetworkMessageData &);
