@@ -1,7 +1,6 @@
 LINK = -lssl -lcrypto -ldl -pthread
-CFLAG = -O0
-CC = gcc
-CPP = g++
+CFLAG = -O0 
+
 ifeq ($(OS),Windows_NT)
     ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
     endif
@@ -16,6 +15,7 @@ else
     endif
     UNAME_P := $(shell uname -p)
 endif
+
 OBJFILE = chacha20.o curve25519.o ed25519.o poly1305.o rfc6234-master/hkdf.o rfc6234-master/hmac.o rfc6234-master/sha.o main.o PHKAccessory.o PHKControllerRecord.o PHKNetworkIP.o PHKArduinoLightInterface.o srp/srp.o srp/cstr.o srp/t_math.o srp/srp6_server.o srp/t_conf.o srp/t_conv.o srp/t_pw.o srp/t_misc.o srp/t_truerand.o srp/t_read.o Accessory.o
 all: PHK
 PHK: $(OBJFILE)
