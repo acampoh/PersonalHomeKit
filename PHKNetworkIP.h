@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <dns_sd.h>
+#include <avahi-compat-libdns_sd/dns_sd.h>
 #include <cstring>
 #include <string>
 using namespace std;
