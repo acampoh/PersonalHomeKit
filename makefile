@@ -1,4 +1,4 @@
-LINK = -lssl -lcrypto -ldl -pthread
+LINK = -lssl -lcrypto -ldl -pthread 
 CFLAG = -O0 
 
 ifeq ($(OS),Windows_NT)
@@ -19,7 +19,7 @@ endif
 OBJFILE = chacha20.o curve25519.o ed25519.o poly1305.o rfc6234-master/hkdf.o rfc6234-master/hmac.o rfc6234-master/sha.o main.o PHKAccessory.o PHKControllerRecord.o PHKNetworkIP.o PHKArduinoLightInterface.o srp/srp.o srp/cstr.o srp/t_math.o srp/srp6_server.o srp/t_conf.o srp/t_conv.o srp/t_pw.o srp/t_misc.o srp/t_truerand.o srp/t_read.o Accessory.o
 all: PHK
 PHK: $(OBJFILE)
-	$(CPP) $(CFLAG) -o PHK $(OBJFILE) $(LINK)
+	$(CXX) $(CFLAG) -o PHK $(OBJFILE) $(LINK)
 chacha20.o: Chacha20/chacha20_simple.c Chacha20/chacha20_simple.h
 	$(CC) $(CFLAG) -w -o chacha20.o -c Chacha20/chacha20_simple.c
 curve25519.o: curve25519/curve25519-donna.c curve25519/curve25519-donna.h
@@ -33,6 +33,6 @@ rfc6234-master/%.o: rfc6234-master/%.c
 srp/%.o: srp/%.c
 	$(CC) $(CFLAG) -lcrypto -w -c $< -o $@
 %.o: %.cpp
-	$(CPP) $(CFLAG) -w -c $<
+	$(CXX) $(CFLAG) -w -c $<
 clean:
 	rm -rf ./*.o Chacha20/*.o curve25519/*.o ed25519-donna/*.o poly1305-opt-master/*.o rfc6234-master/*.o srp/*.o PHK
