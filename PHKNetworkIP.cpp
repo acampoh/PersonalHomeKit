@@ -641,7 +641,9 @@ void handlePairVerify(int subSocket, char *buffer) {
             uint16_t msgLen = (uint8_t)buffer[1]*256+(uint8_t)*buffer;
             
             chacha20_ctx chacha20;    bzero(&chacha20, sizeof(chacha20));
-            chacha20_setup(&chacha20, (const uint8_t *)controllerToAccessoryKey, 32, (uint8_t *)&numberOfMsgRec);
+            unsigned char nonce[8];
+            UINT64_TO_LE_UINT8(nonce, numberOfMsgRec);
+            chacha20_setup(&chacha20, (const uint8_t *)controllerToAccessoryKey, 32, nonce);
             numberOfMsgRec++;
             
             //Ploy1305 key
