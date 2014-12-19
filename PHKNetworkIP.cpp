@@ -65,6 +65,46 @@ int connection[numberOfClient];
 int _socket_v4, _socket_v6;
 DNSServiceRef netServiceV4, netServiceV6;
 
+/* store a 32 bit unsigned integer as four 8 bit unsigned integers in little endian */
+inline void
+UINT64_TO_LE_UINT8(unsigned char *p, unsigned long long v)
+{
+    p[0] = (v) & 0xff;
+    p[1] = (v >>  8) & 0xff;
+    p[2] = (v >> 16) & 0xff;
+    p[3] = (v >> 24) & 0xff;
+    p[4] = (v >> 32) & 0xff;
+    p[5] = (v >> 40) & 0xff;
+    p[6] = (v >> 48) & 0xff;
+    p[7] = (v >> 56) & 0xff;
+}
+
+static void poly1305_tag_gen(const unsigned char* key, const unsigned char* AAD, unsigned long long AAD_length, const unsigned char* ciphertext,unsigned long long text_length, unsigned char* tag)
+{ 
+	poly1305_context verifyContext; bzero(&verifyContext, sizeof(verifyContext));
+	poly1305_init(&verifyContext, (const unsigned char*)key);
+	
+	char *padding = new char[16];
+	bzero(padding, 16);
+	if(AAD_length){
+		poly1305_update(&verifyContext, (const unsigned char *)AAD, AAD_length);			//AAD
+		poly1305_update(&verifyContext, (const unsigned char *)padding, 16-AAD_length%16);  //padding 1 of ADD
+	}
+	if(text_length){
+		poly1305_update(&verifyContext, (const unsigned char *)ciphertext, text_length);
+		poly1305_update(&verifyContext, (const unsigned char *)padding, 16-text_length%16); //padding 2 of ciphertext
+	}
+	
+	unsigned char length_string[8];
+	UINT64_TO_LE_UINT8(length_string, AAD_length); 	
+	poly1305_update(&verifyContext, length_string, 8); 	//ADD length
+	UINT64_TO_LE_UINT8(length_string, text_length); 	
+	poly1305_update(&verifyContext, length_string, 8);	//ciphertext data length
+ 
+	poly1305_finish(&verifyContext, tag);	
+	delete[] padding;
+}
+
 //Network Setup
 int setupSocketV4(unsigned int maximumConnection) {
     int _socket = socket(PF_INET, SOCK_STREAM, 0);
@@ -304,21 +344,8 @@ void handlePairSeup(int subSocket, char *buffer) {
                 chacha20_encrypt(&chacha20, (const uint8_t*)temp, (uint8_t *)temp2, 64);
                 
                 char verify[16];    bzero(verify, 16);
-                poly1305_context verifyContext; bzero(&verifyContext, sizeof(verifyContext));
-                poly1305_init(&verifyContext, (const unsigned char*)temp2);
-                poly1305_update(&verifyContext, (const unsigned char *)encryptedData, packageLen-16);
-                {
-                    char *waste = new char[16];
-                    bzero(waste, 16);
-                    poly1305_update(&verifyContext, (const unsigned char *)waste, 16-packageLen%16);
-                    unsigned long long _len;
-                    _len = 0;
-                    poly1305_update(&verifyContext, (const unsigned char *)&_len, 8);
-                    _len = packageLen - 16;
-                    poly1305_update(&verifyContext, (const unsigned char *)&_len, 8);
-                }
-                poly1305_finish(&verifyContext, (unsigned char *)verify);
-                
+                poly1305_tag_gen((const unsigned char*) temp2, NULL, 0, (const unsigned char*) encryptedData, packageLen-16, (unsigned char*) verify);
+            
                 if (bcmp(verify, mac, 16)) {
                     PHKNetworkMessageDataRecord responseRecord;
                     responseRecord.activate = true; responseRecord.data = new char[1]; responseRecord.data[0] = 1; responseRecord.index = 7;   responseRecord.length = 1;
@@ -407,24 +434,8 @@ void handlePairSeup(int subSocket, char *buffer) {
                             char buffer[64], key[64];   bzero(buffer, 64);
                             chacha20_encrypt(&ctx, (const uint8_t *)buffer, (uint8_t *)key, 64);
                             chacha20_encrypt(&ctx, (const uint8_t *)tlv8Data, (uint8_t *)tlv8Record.data, tlv8Len);
-                            
-                            poly1305_context polyCtx;   bzero(&polyCtx, sizeof(polyCtx));
-                            
-                            poly1305_init(&polyCtx, (const unsigned char *)key);
-                            poly1305_update(&polyCtx, (const unsigned char*)tlv8Record.data, tlv8Len);
-                            {
-                                char *waste = new char[16];
-                                bzero(waste, 16);
-                                poly1305_update(&polyCtx, (const unsigned char *)waste, 16-tlv8Len%16);
-                                unsigned long long _len;
-                                _len = 0;
-                                poly1305_update(&polyCtx, (const unsigned char *)&_len, 8);
-                                _len = tlv8Len;
-                                poly1305_update(&polyCtx, (const unsigned char *)&_len, 8);
-                                delete [] waste;
-                            }
-                            
-                            poly1305_finish(&polyCtx, (unsigned char *)&tlv8Record.data[tlv8Len]);
+							poly1305_tag_gen((const unsigned char*)key, NULL, 0, (const unsigned char*)tlv8Record.data, tlv8Len, (unsigned char*)&tlv8Record.data[tlv8Len]); 
+	 
                         }
                         
                         tlv8Record.activate = true; tlv8Record.index = 5;
@@ -543,24 +554,8 @@ void handlePairVerify(int subSocket, char *buffer) {
                 chacha20_encrypt(&chacha, (uint8_t *)plainMsg, (uint8_t *)encryptMsg, msgLen);
                 
                 delete [] plainMsg;
-                
-                poly1305_context poly;
-                poly1305_init(&poly, (const unsigned char *)polyKey);
-                poly1305_update(&poly, (unsigned char *)encryptMsg, msgLen);
-                
-                {
-                    char *waste = new char[16];
-                    bzero(waste, 16);
-                    poly1305_update(&poly, (const unsigned char *)waste, 16-msgLen%16);
-                    unsigned long long _len;
-                    _len = 0;
-                    poly1305_update(&poly, (const unsigned char *)&_len, 8);
-                    _len = msgLen;
-                    poly1305_update(&poly, (const unsigned char *)&_len, 8);
-                    delete [] waste;
-                }
-                poly1305_finish(&poly, (unsigned char *)&encryptMsg[msgLen]);
-                
+                poly1305_tag_gen((const unsigned char*)polyKey, NULL, 0, (const unsigned char*)encryptMsg, msgLen, (unsigned char*)&encryptMsg[msgLen]);  
+ 
                 PHKNetworkMessageDataRecord encryptRecord;
                 encryptRecord.activate = true;  encryptRecord.index = 5; encryptRecord.length = msgLen+16;  encryptRecord.data = new char[encryptRecord.length];    bcopy(encryptMsg, encryptRecord.data, encryptRecord.length);
                 response.data.addRecord(encryptRecord);
@@ -584,21 +579,8 @@ void handlePairVerify(int subSocket, char *buffer) {
                 chacha20_encrypt(&chacha20, (const uint8_t*)temp, (uint8_t *)temp2, 64);
                 
                 char verify[16];    bzero(verify, 16);
-                poly1305_context verifyContext; bzero(&verifyContext, sizeof(verifyContext));
-                poly1305_init(&verifyContext, (const unsigned char*)temp2);
-                poly1305_update(&verifyContext, (const unsigned char *)encryptedData, packageLen-16);
-                {
-                    char waste[16];
-                    bzero(waste, 16);
-                    poly1305_update(&verifyContext, (const unsigned char *)waste, 16-packageLen%16);
-                    unsigned long long _len;
-                    _len = 0;
-                    poly1305_update(&verifyContext, (const unsigned char *)&_len, 8);
-                    _len = packageLen - 16;
-                    poly1305_update(&verifyContext, (const unsigned char *)&_len, 8);
-                }
-                poly1305_finish(&verifyContext, (unsigned char *)verify);
-                
+                poly1305_tag_gen((const unsigned char*)temp2, NULL, 0, (const unsigned char*) encryptedData, packageLen-16, (unsigned char*)verify);  
+ 
                 if (!bcmp(verify, &encryptedData[packageLen-16], 16)) {
                     char *decryptData = new char[packageLen-16];
                     chacha20_decrypt(&chacha20, (const uint8_t *)encryptedData, (uint8_t *)decryptData, packageLen-16);
@@ -669,26 +651,8 @@ void handlePairVerify(int subSocket, char *buffer) {
             chacha20_decrypt(&chacha20, (const uint8_t *)&buffer[2], (uint8_t *)decryptData, msgLen);
             
             char verify[16];    bzero(verify, 16);
-            poly1305_context verifyContext; bzero(&verifyContext, sizeof(verifyContext));
-            poly1305_init(&verifyContext, (const unsigned char*)temp2);
-            {
-                char waste[16];
-                bzero(waste, 16);
-                
-                poly1305_update(&verifyContext, (const unsigned char *)buffer, 2);
-                poly1305_update(&verifyContext, (const unsigned char *)waste, 14);
-                
-                poly1305_update(&verifyContext, (const unsigned char *)&buffer[2], msgLen);
-                poly1305_update(&verifyContext, (const unsigned char *)waste, 16-msgLen%16);
-                
-                unsigned long long _len;
-                _len = 2;
-                poly1305_update(&verifyContext, (const unsigned char *)&_len, 8);
-                _len = msgLen;
-                poly1305_update(&verifyContext, (const unsigned char *)&_len, 8);
-            }
-            poly1305_finish(&verifyContext, (unsigned char *)verify);
-            
+			poly1305_tag_gen((const unsigned char*)temp2,(const unsigned char*)buffer, 2, (const unsigned char*)&buffer[2], msgLen, (unsigned char*)verify);      
+ 
             //Output return
             char *resultData = 0; unsigned int resultLen = 0;
             handleAccessory(decryptData, msgLen, &resultData, &resultLen);
@@ -703,24 +667,8 @@ void handlePairVerify(int subSocket, char *buffer) {
             chacha20_encrypt(&chacha20, (const uint8_t*)temp, (uint8_t *)temp2, 64);
             chacha20_encrypt(&chacha20, (const uint8_t*)resultData, (uint8_t*)&reply[2], resultLen);
             
-            poly1305_init(&verifyContext, (const unsigned char*)temp2);
-            {
-                char waste[16];
-                bzero(waste, 16);
-                
-                poly1305_update(&verifyContext, (const unsigned char *)reply, 2);
-                poly1305_update(&verifyContext, (const unsigned char *)waste, 14);
-                
-                poly1305_update(&verifyContext, (const unsigned char *)&reply[2], resultLen);
-                poly1305_update(&verifyContext, (const unsigned char *)waste, 16-resultLen%16);
-                unsigned long long _len;
-                _len = 2;
-                poly1305_update(&verifyContext, (const unsigned char *)&_len, 8);
-                _len = resultLen;
-                poly1305_update(&verifyContext, (const unsigned char *)&_len, 8);
-            }
-            poly1305_finish(&verifyContext, (unsigned char*)&reply[resultLen+2]);
-            
+			poly1305_tag_gen((const unsigned char*)temp2,(const unsigned char*)reply, 2, (const unsigned char*)&reply[2], resultLen, (unsigned char*)&reply[resultLen+2]);    
+ 
             write(subSocket, reply, resultLen+18);
             
             delete [] reply;
