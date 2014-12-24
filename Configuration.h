@@ -9,13 +9,13 @@
 #ifndef Workbench_Configuration_h
 #define Workbench_Configuration_h
 
-#define HomeKitLog 0
-#define HomeKitReplyHeaderLog 0
+#define HomeKitLog 1
+#define HomeKitReplyHeaderLog 1
 
 //Device Setting
 #define deviceName "DemoBridge"    //Name
 #define deviceIdentity "12:00:54:23:51:13"  //ID
-#define manufactuerName "Demo"   	//Manufactuer
+#define _manufactuerName "Demo"   	//Manufactuer
 #define devicePassword "523-12-643" //Password
 #define deviceUUID "9FCF7180-6CAA-4174-ABC0-E3FAE58E3ADD"   //UUID, for pair verify
 #define controllerRecordsAddress "/tmp/controller" //Where to store the client keys
@@ -27,6 +27,12 @@
  * So you will never got the pair corrected, as it is incomplete (The error require manually reset HomeKit setting
  */
 #define numberOfClient 20
+//Number of notifiable value
+/*
+ * Count how many notifiable value exist in your set
+ * For dynamic add/drop model, please estimate the maximum number (Too few->Buffer overflow)
+ */
+#define numberOfNotifiableValue 1
 
 //If you compiling this to microcontroller, set it to 1
 #define MCU 0

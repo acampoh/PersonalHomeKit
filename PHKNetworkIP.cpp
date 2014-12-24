@@ -47,6 +47,11 @@ using namespace std;
 
 #define portNumber 0
 
+#if MCU
+#else
+connectionInfo connection[numberOfClient];
+#endif
+
 const unsigned char modulusStr[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xC9, 0x0F, 0xDA, 0xA2, 0x21, 0x68, 0xC2, 0x34, 0xC4, 0xC6, 0x62, 0x8B, 0x80, 0xDC, 0x1C, 0xD1, 0x29, 0x02, 0x4E, 0x08, 0x8A, 0x67, 0xCC, 0x74, 0x02, 0x0B, 0xBE, 0xA6, 0x3B, 0x13, 0x9B, 0x22, 0x51, 0x4A, 0x08, 0x79, 0x8E, 0x34, 0x04, 0xDD, 0xEF, 0x95, 0x19, 0xB3, 0xCD, 0x3A, 0x43, 0x1B, 0x30, 0x2B, 0x0A, 0x6D, 0xF2, 0x5F, 0x14, 0x37, 0x4F, 0xE1, 0x35, 0x6D, 0x6D, 0x51, 0xC2, 0x45, 0xE4, 0x85, 0xB5, 0x76, 0x62, 0x5E, 0x7E, 0xC6, 0xF4, 0x4C, 0x42, 0xE9, 0xA6, 0x37, 0xED, 0x6B, 0x0B, 0xFF, 0x5C, 0xB6, 0xF4, 0x06, 0xB7, 0xED, 0xEE, 0x38, 0x6B, 0xFB, 0x5A, 0x89, 0x9F, 0xA5, 0xAE, 0x9F, 0x24, 0x11, 0x7C, 0x4B, 0x1F, 0xE6, 0x49, 0x28, 0x66, 0x51, 0xEC, 0xE4, 0x5B, 0x3D, 0xC2, 0x00, 0x7C, 0xB8, 0xA1, 0x63, 0xBF, 0x05, 0x98, 0xDA, 0x48, 0x36, 0x1C, 0x55, 0xD3, 0x9A, 0x69, 0x16, 0x3F, 0xA8, 0xFD, 0x24, 0xCF, 0x5F, 0x83, 0x65, 0x5D, 0x23, 0xDC, 0xA3, 0xAD, 0x96, 0x1C, 0x62, 0xF3, 0x56, 0x20, 0x85, 0x52, 0xBB, 0x9E, 0xD5, 0x29, 0x07, 0x70, 0x96, 0x96, 0x6D, 0x67, 0x0C, 0x35, 0x4E, 0x4A, 0xBC, 0x98, 0x04, 0xF1, 0x74, 0x6C, 0x08, 0xCA, 0x18, 0x21, 0x7C, 0x32, 0x90, 0x5E, 0x46, 0x2E, 0x36, 0xCE, 0x3B, 0xE3, 0x9E, 0x77, 0x2C, 0x18, 0x0E, 0x86, 0x03, 0x9B, 0x27, 0x83, 0xA2, 0xEC, 0x07, 0xA2, 0x8F, 0xB5, 0xC5, 0x5D, 0xF0, 0x6F, 0x4C, 0x52, 0xC9, 0xDE, 0x2B, 0xCB, 0xF6, 0x95, 0x58, 0x17, 0x18, 0x39, 0x95, 0x49, 0x7C, 0xEA, 0x95, 0x6A, 0xE5, 0x15, 0xD2, 0x26, 0x18, 0x98, 0xFA, 0x05, 0x10, 0x15, 0x72, 0x8E, 0x5A, 0x8A, 0xAA, 0xC4, 0x2D, 0xAD, 0x33, 0x17, 0x0D, 0x04, 0x50, 0x7A, 0x33, 0xA8, 0x55, 0x21, 0xAB, 0xDF, 0x1C, 0xBA, 0x64, 0xEC, 0xFB, 0x85, 0x04, 0x58, 0xDB, 0xEF, 0x0A, 0x8A, 0xEA, 0x71, 0x57, 0x5D, 0x06, 0x0C, 0x7D, 0xB3, 0x97, 0x0F, 0x85, 0xA6, 0xE1, 0xE4, 0xC7, 0xAB, 0xF5, 0xAE, 0x8C, 0xDB, 0x09, 0x33, 0xD7, 0x1E, 0x8C, 0x94, 0xE0, 0x4A, 0x25, 0x61, 0x9D, 0xCE, 0xE3, 0xD2, 0x26, 0x1A, 0xD2, 0xEE, 0x6B, 0xF1, 0x2F, 0xFA, 0x06, 0xD9, 0x8A, 0x08, 0x64, 0xD8, 0x76, 0x02, 0x73, 0x3E, 0xC8, 0x6A, 0x64, 0x52, 0x1F, 0x2B, 0x18, 0x17, 0x7B, 0x20, 0x0C, 0xBB, 0xE1, 0x17, 0x57, 0x7A, 0x61, 0x5D, 0x6C, 0x77, 0x09, 0x88, 0xC0, 0xBA, 0xD9, 0x46, 0xE2, 0x08, 0xE2, 0x4F, 0xA0, 0x74, 0xE5, 0xAB, 0x31, 0x43, 0xDB, 0x5B, 0xFC, 0xE0, 0xFD, 0x10, 0x8E, 0x4B, 0x82, 0xD1, 0x20, 0xA9, 0x3A, 0xD2, 0xCA, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 const unsigned char curveBasePoint[] = { 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -56,15 +61,10 @@ char tempStr[3073];
 
 const unsigned char accessorySecretKey[32] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xC9, 0x0F, 0xDA, 0xA2, 0x21, 0x68, 0xC2, 0x34, 0xC4, 0xC6, 0x62, 0x8B, 0x80, 0xDC, 0x1C, 0xD1, 0x29, 0x02, 0x4E, 0x08, 0x8A, 0x67, 0xCC, 0x74};
 
-#if MCU
-#else
-pthread_t threads[numberOfClient];
-#endif
-int connection[numberOfClient];
-
 int _socket_v4, _socket_v6;
 DNSServiceRef netServiceV4, netServiceV6;
 
+ 
 /* store a 32 bit unsigned integer as four 8 bit unsigned integers in little endian */
 inline void
 UINT64_TO_LE_UINT8(unsigned char *p, unsigned long long v)
@@ -103,7 +103,9 @@ static void poly1305_tag_gen(const unsigned char* key, const unsigned char* AAD,
  
 	poly1305_finish(&verifyContext, tag);	
 	delete[] padding;
-}
+} 
+int currentConfigurationNum = 1;
+ 
 
 //Network Setup
 int setupSocketV4(unsigned int maximumConnection) {
@@ -141,17 +143,26 @@ void registerFail(DNSServiceRef sdRef, DNSRecordRef RecordRef, DNSServiceFlags f
     exit(0);
 }
 
-TXTRecordRef PHKNetworkIP::buildTXTRecord() {
+TXTRecordRef buildTXTRecord() {
     TXTRecordRef txtRecord;
     TXTRecordCreate(&txtRecord, 0, NULL);
     TXTRecordSetValue(&txtRecord, "pv", 3, "1.0");  //Version
     TXTRecordSetValue(&txtRecord, "id", 17, deviceIdentity);    //Device id
-    TXTRecordSetValue(&txtRecord, "c#", 1, "3");    //Number of Accessory?
+    char buf[2];
+    sprintf(buf, "%d", currentConfigurationNum);
+    TXTRecordSetValue(&txtRecord, "c#", 1, buf);    //Configuration Number
     TXTRecordSetValue(&txtRecord, "s#", 1, "4");    //Number of service
     TXTRecordSetValue(&txtRecord, "sf", 1, "2");    //No idea what it is
     TXTRecordSetValue(&txtRecord, "ff", 1, "0");    //1 for MFI product
     TXTRecordSetValue(&txtRecord, "md", strlen(deviceName), deviceName);    //Model Name
     return txtRecord;
+}
+
+void updateConfiguration() {
+    currentConfigurationNum++;
+    TXTRecordRef txtRecord = buildTXTRecord();
+    DNSServiceUpdateRecord(netServiceV4, NULL, 0, TXTRecordGetLength(&txtRecord), TXTRecordGetBytesPtr(&txtRecord), 0);
+    TXTRecordDeallocate(&txtRecord);
 }
 
 void PHKNetworkIP::setupSocket() {
@@ -165,31 +176,70 @@ PHKNetworkIP::PHKNetworkIP() {
     SRP_initialize_library();
     srand((unsigned int)time(NULL));
     for (int i = 0; i < numberOfClient; i++) {
-        connection[i] = -1;
+        connection[i].subSocket = -1;
     }
     setupSocket();
 }
 
 //Connection Logic, not finished
-void broadcastMessage(char *buffer, size_t len) {
+void broadcastMessage(void *sender, char *resultData, size_t resultLen) {
+
+#if HomeKitLog == 1
+    printf("Broadcast with sender\n");
+#endif
+    
     for (int i = 0; i < numberOfClient; i++) {
-        int socketNumber = connection[i];
-        if (socketNumber >= 0) {
-            write(socketNumber, buffer, len);
+        int socketNumber = connection[i].subSocket;
+        if (socketNumber >= 0 && connection[i].notify(sender)) {
+            
+            pthread_mutex_lock(&connection[i].mutex);
+            
+            chacha20_ctx chacha20;    bzero(&chacha20, sizeof(chacha20));
+            poly1305_context verifyContext; bzero(&verifyContext, sizeof(verifyContext));
+            
+            char temp[64];  bzero(temp, 64); char temp2[64];  bzero(temp2, 64);
+            
+            char *reply = new char[resultLen+18];
+            reply[0] = resultLen%256;
+            reply[1] = (resultLen-(uint8_t)reply[0])/256;
+            
+            chacha20_setup(&chacha20, (const uint8_t *)connection[i].accessoryToControllerKey, 32, (uint8_t *)&connection[i].numberOfMsgSend);
+            connection[i].numberOfMsgSend++;
+            chacha20_encrypt(&chacha20, (const uint8_t*)temp, (uint8_t *)temp2, 64);
+            chacha20_encrypt(&chacha20, (const uint8_t*)resultData, (uint8_t*)&reply[2], resultLen);
+            
+            poly1305_init(&verifyContext, (const unsigned char*)temp2);
+            {
+                char waste[16];
+                bzero(waste, 16);
+                
+                poly1305_update(&verifyContext, (const unsigned char *)reply, 2);
+                poly1305_update(&verifyContext, (const unsigned char *)waste, 14);
+                
+                poly1305_update(&verifyContext, (const unsigned char *)&reply[2], resultLen);
+                poly1305_update(&verifyContext, (const unsigned char *)waste, 16-resultLen%16);
+                unsigned long long _len;
+                _len = 2;
+                poly1305_update(&verifyContext, (const unsigned char *)&_len, 8);
+                _len = resultLen;
+                poly1305_update(&verifyContext, (const unsigned char *)&_len, 8);
+            }
+            poly1305_finish(&verifyContext, (unsigned char*)&reply[resultLen+2]);
+            
+            write(socketNumber, reply, resultLen+18);
+            pthread_mutex_unlock(&connection[i].mutex);
         }
     }
 }
-void handlePairSeup(int subSocket, char *buffer);
-void handlePairVerify(int subSocket, char *buffer);
-void *connectionLoop(void *argument) {
-    int subSocket = *(int*)argument;ssize_t len;
+void *connectionLoop(void *threadInfo) {
+    connectionInfo *info = (connectionInfo *)threadInfo;
+    int subSocket = info->subSocket;    ssize_t len;
     if (subSocket >= 0) {
         printf("Start Connect: %d\n", subSocket);
         
         do {
-            char *buffer = new char[4096];
-            len = read(*(int*)argument, buffer, 4096);
-            PHKNetworkMessage msg(buffer);
+            len = read(subSocket, info->buffer, 4096);
+            PHKNetworkMessage msg(info->buffer);
             if (len > 0) {
                 if (!strcmp(msg.directory, "pair-setup")){
                     
@@ -197,22 +247,20 @@ void *connectionLoop(void *argument) {
                      * The processo f pair-setup
                      */
                     
-                    handlePairSeup(*(int*)argument, buffer);
+                    info->handlePairSeup();
                     
                 }
                 else if (!strcmp(msg.directory, "pair-verify")){
-                    handlePairVerify(*(int*)argument, buffer);
+                    info->handlePairVerify();
                 }
             }
             
-            delete [] buffer;
-            
         } while (len > 0);
         
-        close(*(int*)argument);
+        close(subSocket);
         printf("Stop Connect: %d\n", subSocket);
         
-        *(int*)argument = -1;
+        info->subSocket = -1;
         
     }
     return NULL;
@@ -223,10 +271,11 @@ void PHKNetworkIP::handleConnection() const {
     
     int index = -1;
     for (int i = 0; i < numberOfClient; i++) {
-        if (connection[i] == -1) {
+        if (connection[i].subSocket == -1) {
             index = i;
-            connection[index] = subSocket;
-            pthread_create(&threads[index], NULL, connectionLoop, &connection[index]);
+            connection[index].subSocket = subSocket;
+            
+            pthread_create(&connection[index].thread, NULL, connectionLoop, &connection[index]);
             break;
         }
     }
@@ -235,7 +284,7 @@ void PHKNetworkIP::handleConnection() const {
 
 }
 
-void handlePairSeup(int subSocket, char *buffer) {
+void connectionInfo::handlePairSeup() {
     PHKNetworkMessageDataRecord stateRecord;
     stateRecord.activate = true;    stateRecord.data = new char[1]; stateRecord.length = 1;    stateRecord.index = 6;
     int state = 1;
@@ -474,7 +523,7 @@ void handlePairSeup(int subSocket, char *buffer) {
     SRP_free(srp);
 }
 
-void handlePairVerify(int subSocket, char *buffer) {
+void connectionInfo::handlePairVerify() {
     bool end = false;
     unsigned char state = 1;
     
@@ -482,10 +531,6 @@ void handlePairVerify(int subSocket, char *buffer) {
     curved25519_key publicKey;
     curved25519_key controllerPublicKey;
     curved25519_key sharedKey;
-    
-    uint8_t controllerToAccessoryKey[32], accessoryToControllerKey[32];
-    
-    unsigned long long numberOfMsgRec = 0, numberOfMsgSend = 0;
     
     uint8_t enKey[32];
 #if HomeKitLog == 1
@@ -625,6 +670,8 @@ void handlePairVerify(int subSocket, char *buffer) {
         delete [] repBuffer;
     } while (!end && read(subSocket, buffer, 4096) > 0);
     
+    connected = true;
+    
     char *decryptData = new char[2048];
     
     int len;
@@ -632,6 +679,13 @@ void handlePairVerify(int subSocket, char *buffer) {
 #if HomeKitLog == 1
     printf("Successfully Connect\n");
 #endif
+    
+    numberOfMsgRec = 0;
+    numberOfMsgSend = 0;
+    
+    clearNotify();
+    
+    pthread_mutex_init(&mutex, NULL);
     
     do {
         bzero(buffer, 4096);
@@ -641,9 +695,11 @@ void handlePairVerify(int subSocket, char *buffer) {
             uint16_t msgLen = (uint8_t)buffer[1]*256+(uint8_t)*buffer;
             
             chacha20_ctx chacha20;    bzero(&chacha20, sizeof(chacha20));
+
             unsigned char nonce[8];
             UINT64_TO_LE_UINT8(nonce, numberOfMsgRec);
             chacha20_setup(&chacha20, (const uint8_t *)controllerToAccessoryKey, 32, nonce);
+
             numberOfMsgRec++;
             
             //Ploy1305 key
@@ -653,11 +709,12 @@ void handlePairVerify(int subSocket, char *buffer) {
             chacha20_decrypt(&chacha20, (const uint8_t *)&buffer[2], (uint8_t *)decryptData, msgLen);
             
             char verify[16];    bzero(verify, 16);
+
 			poly1305_tag_gen((const unsigned char*)temp2,(const unsigned char*)buffer, 2, (const unsigned char*)&buffer[2], msgLen, (unsigned char*)verify);      
  
             //Output return
             char *resultData = 0; unsigned int resultLen = 0;
-            handleAccessory(decryptData, msgLen, &resultData, &resultLen);
+            handleAccessory(decryptData, msgLen, &resultData, &resultLen, this);
             
             
             char *reply = new char[resultLen+18];
@@ -672,7 +729,10 @@ void handlePairVerify(int subSocket, char *buffer) {
             
 			poly1305_tag_gen((const unsigned char*)temp2,(const unsigned char*)reply, 2, (const unsigned char*)&reply[2], resultLen, (unsigned char*)&reply[resultLen+2]);    
  
+
             write(subSocket, reply, resultLen+18);
+            
+            pthread_mutex_unlock(&mutex);
             
             delete [] reply;
             delete [] resultData;
@@ -681,8 +741,11 @@ void handlePairVerify(int subSocket, char *buffer) {
             
         }
     } while (len > 0);
+    
+    pthread_mutex_destroy(&mutex);
 
     delete [] decryptData;
+    connected = false;
 }
 
 //Object Logic
